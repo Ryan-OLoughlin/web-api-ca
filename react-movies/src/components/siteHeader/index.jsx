@@ -27,10 +27,12 @@ const SiteHeader = () => {
     { label: "Home", path: "/" },
     { label: "Search", path: "/search" },
     { label: "Favorites", path: "/movies/favorites" },
-  { label: "Trending", path: "/movies/trending" },
+    { label: "Playlists", path: "/playlists" },
+    { label: "Discover", path: "/homepage" },
+    { label: "Trending", path: "/movies/trending" },
     { label: "Top Rated", path: "/movies/top-rated" },
     { label: "Upcoming", path: "/movies/upcoming" },
-    { label: "Playlists", path: "/playlists" },
+    
   ];
 
   const handleMenuSelect = (pageURL) => {

@@ -20,6 +20,10 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 import './index.css';
+import LoginPage from "./pages/loginPage";
+import SignUpPage from "./pages/signupPage";
+import ProfilePage from "./pages/profilePage";
+import StartPage from "./pages/startPage";
 
 
 
@@ -42,6 +46,9 @@ const App = () => {
           <SiteHeader />
           <MoviesContextProvider>
             <Routes>
+              <Route path="/login" element={< LoginPage />} />
+              <Route path="/signup" element={< SignUpPage />} />
+              <Route path="/profile" element={< ProfilePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/movies/upcoming" element={<UpcomingMoviesPage />} />
               <Route path="/movies/top-rated" element={<TopRatedMoviesPage />} />
@@ -52,7 +59,8 @@ const App = () => {
               <Route path="/movies/:id" element={<MoviePage />} />
               <Route path="/person/:id" element={<PersonPage />} />
               <Route path="/playlists" element={<PlaylistsPage />} />
-              <Route path="/" element={<HomePage />} />
+              <Route path="/homepage" element={<HomePage />} />
+              <Route path="/" element={<StartPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </MoviesContextProvider>
