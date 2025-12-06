@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Navigate, Routes } from "react-router";
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import HomePage from "./pages/homePage";
+import DiscoverPage from "./pages/discoverPage";
 import MoviePage from "./pages/movieDetailsPage";
 import PersonPage from "./pages/personDetailsPage";
 import FavoriteMoviesPage from "./pages/favoriteMoviesPage";
@@ -24,7 +24,8 @@ import LoginPage from "./pages/loginPage";
 import SignUpPage from "./pages/signupPage";
 import ProfilePage from "./pages/profilePage";
 import StartPage from "./pages/startPage";
-
+import ProtectedRoutes from "./protectedRoutes";
+import AuthContextProvider from "./contexts/authContext";
 
 
 const queryClient = new QueryClient({
@@ -43,27 +44,31 @@ const App = () => {
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+        <AuthContextProvider>
           <SiteHeader />
           <MoviesContextProvider>
             <Routes>
               <Route path="/login" element={< LoginPage />} />
               <Route path="/signup" element={< SignUpPage />} />
-              <Route path="/profile" element={< ProfilePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/movies/upcoming" element={<UpcomingMoviesPage />} />
               <Route path="/movies/top-rated" element={<TopRatedMoviesPage />} />
               <Route path="/movies/trending" element={<TrendingMoviesPage />} />
-              <Route path="/movies/favorites" element={<FavoriteMoviesPage />} />
               <Route path="/reviews/:id" element={<MovieReviewPage />} />
               <Route path="/reviews/form" element={<AddMovieReviewPage />} />
               <Route path="/movies/:id" element={<MoviePage />} />
               <Route path="/person/:id" element={<PersonPage />} />
-              <Route path="/playlists" element={<PlaylistsPage />} />
-              <Route path="/homepage" element={<HomePage />} />
+              <Route path="/discover" element={<DiscoverPage />} />
               <Route path="/" element={<StartPage />} />
               <Route path="*" element={<Navigate to="/" />} />
+              <Route element={<ProtectedRoutes />}>
+                <Route path="/playlists" element={<PlaylistsPage />} />
+                <Route path="/movies/favorites" element={<FavoriteMoviesPage />} />
+                <Route path="/profile" element={< ProfilePage />} />
+              </Route>
             </Routes>
           </MoviesContextProvider>
+          </AuthContextProvider>
         </BrowserRouter>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

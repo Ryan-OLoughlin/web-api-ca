@@ -5,7 +5,7 @@ import Spinner from '../components/spinner';
 import AddToFavoritesIcon from '../components/cardIcons/addToFavorites';
 
 
-const HomePage = (props) => {
+const DiscoverPage = (props) => {
 
   const { data, error, isPending, isError } = useQuery({
     queryKey: ['discover'],
@@ -39,4 +39,4 @@ const HomePage = (props) => {
 
 };
 
-export default HomePage;
+export default DiscoverPage;
