@@ -1,108 +1,93 @@
-import React, { useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
-import MenuIcon from "@mui/icons-material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Menu from "@mui/material/Menu";
 import { useNavigate } from "react-router";
 import { styled } from '@mui/material/styles';
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import { useContext } from "react";
+import { AuthContext } from '../../contexts/authContext';
+import Box from "@mui/material/Box";
 
 const Offset = styled('div')(({ theme }) => theme.mixins.toolbar);
 
 const SiteHeader = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const context = useContext(AuthContext);
   
   const navigate = useNavigate();
 
   const menuOptions = [
     { label: "Home", path: "/" },
     { label: "Search", path: "/search" },
-    { label: "Favorites", path: "/movies/favorites" },
-    { label: "Playlists", path: "/playlists" },
     { label: "Discover", path: "/discover" },
     { label: "Trending", path: "/movies/trending" },
     { label: "Top Rated", path: "/movies/top-rated" },
     { label: "Upcoming", path: "/movies/upcoming" },
-    
+  ];
+
+  const protectedOptions = [
+    { label: "Profile", path: "/profile" },
+    { label: "Favorites", path: "/movies/favorites" },
+    { label: "Playlists", path: "/playlists" },
   ];
 
   const handleMenuSelect = (pageURL) => {
-    setAnchorEl(null);
     navigate(pageURL);
   };
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  return (
+  
+  
+return (
     <>
-  <AppBar position="fixed" color="primary" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar>
-          <Typography variant="h5" sx={{ flexGrow: 1, color: 'primary.contrastText' }}>
-            DaMovieDB.ie
-          </Typography>
-          {/* <Typography variant="subtitle1" sx={{ flexGrow: 1, color: 'primary.contrastText' }}>
-            Watch this stuff dawg!
-          </Typography> */}
-            {isMobile ? (
+      <AppBar position="fixed" color="primary" sx={{ backgroundColor: "primary.main" }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+          {/* Left: brand + nav */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography
+              variant="h5"
+              sx={{ color: "primary.contrastText", cursor: "pointer", whiteSpace: "nowrap" }}
+              onClick={() => navigate("/")}
+            >
+              DaMovieDB.ie
+            </Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              {menuOptions.map((opt) => (
+                <Button key={opt.label} color="inherit" onClick={() => handleMenuSelect(opt.path)}>
+                  {opt.label}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Right: auth status + protected options */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {context.isAuthenticated ? (
               <>
-                <IconButton
-                  aria-label="menu"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleMenu}
-                  color="inherit"
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorEl}
-                  anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  open={open}
-                  onClose={() => setAnchorEl(null)}
-                >
-                  {menuOptions.map((opt) => (
-                    <MenuItem
-                      key={opt.label}
-                      onClick={() => handleMenuSelect(opt.path)}
-                    >
-                      {opt.label}
-                    </MenuItem>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                  {protectedOptions.map((opt) => (
+                  <Button key={opt.label} color="inherit" onClick={() => handleMenuSelect(opt.path)}>
+                  {opt.label}
+                  </Button>
                   ))}
-                </Menu>
+                </Box>
+                <Typography variant="body2" sx={{ color: "primary.contrastText" }}>
+                  Welcome {context.userName}!
+                </Typography>
+                <Button onClick={() => context.signout()} variant="outlined" color="inherit" size="small">
+                  Sign out
+                </Button>
               </>
             ) : (
               <>
-                {menuOptions.map((opt) => (
-                  <Button
-                    key={opt.label}
-                    color="inherit"
-                    onClick={() => handleMenuSelect(opt.path)}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
+                <Typography variant="body2" sx={{ color: "primary.contrastText" }}>
+                  You are not logged in
+                </Typography>
+                <Button onClick={() => navigate("/login")} variant="outlined" color="inherit" size="small">
+                  Login
+                </Button>
               </>
             )}
+          </Box>
         </Toolbar>
       </AppBar>
       <Offset />
