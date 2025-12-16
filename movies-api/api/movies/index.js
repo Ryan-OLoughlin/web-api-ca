@@ -1,7 +1,6 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 import { getMovies } from '../tmdb-api'; 
-import Playlist from './playlistModel';
 
 const router = express.Router();
 
