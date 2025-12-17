@@ -13,9 +13,6 @@ const MovieSchema = new Schema({
   original_language: String,
   budget: Number,
   release_date: Date,
-  priority: {type: String, enum: ["Low","Medium","High"]},
-  created_at: Date,
-  updated_at: Date
 });
 
 export default mongoose.model('Movie', MovieSchema);

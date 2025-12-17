@@ -1,16 +1,14 @@
 import mongoose from 'mongoose';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const PlaylistSchema = new Schema({
-  title:  String,
-  description:  String ,
-  genres: [String],
-  total_runtime: Number,
-  total_revenue: Number,
-  vote_average: Number,
-  vote_count: Number,
-  creation_date: String,
-});
+const PlaylistSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
+    movieIds: { type: [Number], default: [] },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.model('Playlist', PlaylistSchema);

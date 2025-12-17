@@ -40,7 +40,8 @@ const AuthContextProvider = (props) => {
         authenticate,
         register,
         signout,
-        userName
+        userName,
+        authToken
       }}
     >
       {props.children} {/* eslint-disable-line */}
