@@ -6,6 +6,7 @@ import moviesRouter from './api/movies';
 import usersRouter from './api/users';
 import playlistsRouter from './api/playlists';
 import favoritesRouter from './api/favorites';
+import personRouter from './api/person';
 import authenticate from './authenticate';
 
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/movies', moviesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/playlists', playlistsRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/person', personRouter);
 
 app.use(errHandler);
 
