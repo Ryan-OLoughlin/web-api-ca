@@ -1,58 +1,74 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "./authContext";
+import * as api from "../api/tmdb-api";
 
 export const MoviesContext = React.createContext(null);
 
-const STORAGE_KEY = "tmdb_playlists_v1";
-
 const MoviesContextProvider = (props) => {
+  const authContext = useContext(AuthContext);
   const [favorites, setFavorites] = useState([]);
   const [myReviews, setMyReviews] = useState({});
   const [playlists, setPlaylists] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // load playlists from localStorage
+  // Load favorites and playlists from backend when authenticated
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setPlaylists(JSON.parse(raw));
-    } catch (e) {
-    }
-  }, []);
+    const loadData = async () => {
+      if (!authContext.isAuthenticated || !authContext.authToken) {
+        setFavorites([]);
+        setPlaylists([]);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        // Load favorites
+        const favs = await api.getFavorites(authContext.authToken);
+        setFavorites(favs.map((f) => f.movieId));
+        
+        // Load playlists
+        const lists = await api.getPlaylists(authContext.authToken);
+        setPlaylists(lists);
+      } catch (error) {
+        console.error("Failed to load favorites/playlists:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // persist playlists on change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(playlists));
-    } catch (e) {
-    }
-  }, [playlists]);
+    loadData();
+  }, [authContext.isAuthenticated, authContext.authToken]);
 
-  // load favorites from localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('favorites');
-      if (raw) setFavorites(JSON.parse(raw).map((m) => m.id || m));
-    } catch (e) {
+  // --- Favorites API ---
+  const addToFavorites = async (movie) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
     }
-  }, []);
-
-  // persist favorites to localStorage whenever they change (store as array of ids)
-  useEffect(() => {
+    
     try {
-      localStorage.setItem('favorites', JSON.stringify(favorites.map((id) => id)));
-    } catch (e) {
+      await api.addFavorite(movie.id, authContext.authToken);
+      setFavorites((prev) => {
+        if (!prev.includes(movie.id)) return [...prev, movie.id];
+        return prev;
+      });
+    } catch (error) {
+      console.error("Failed to add favorite:", error);
     }
-  }, [favorites]);
-
-  const addToFavorites = (movie) => {
-    setFavorites((prev) => {
-      if (!prev.includes(movie.id)) return [...prev, movie.id];
-      return prev;
-    });
   };
 
-  // We will use this function in the next step
-  const removeFromFavorites = (movie) => {
-    setFavorites((prev) => prev.filter((mId) => mId !== movie.id));
+  const removeFromFavorites = async (movie) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
+    try {
+      await api.removeFavorite(movie.id, authContext.authToken);
+      setFavorites((prev) => prev.filter((mId) => mId !== movie.id));
+    } catch (error) {
+      console.error("Failed to remove favorite:", error);
+    }
   };
 
   const addReview = (movie, review) => {
@@ -60,40 +76,91 @@ const MoviesContextProvider = (props) => {
   };
 
   // --- Playlists API ---
-  const generateId = () => `${Date.now()}`;
-
-  // playlist shape: { id, name, movieIds: [] }
-  const createPlaylist = (name = "New Playlist") => {
-    const newList = { id: generateId(), name, movieIds: [] };
-    setPlaylists((p) => [...p, newList]);
-    return newList.id;
+  const createPlaylist = async (name = "New Playlist") => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return null;
+    }
+    
+    try {
+      const newPlaylist = await api.createPlaylist(name, authContext.authToken);
+      setPlaylists((p) => [...p, newPlaylist]);
+      return newPlaylist.id;
+    } catch (error) {
+      console.error("Failed to create playlist:", error);
+      return null;
+    }
   };
 
-  const deletePlaylist = (playlistId) => {
-    setPlaylists((p) => p.filter((pl) => pl.id !== playlistId));
+  const deletePlaylist = async (playlistId) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
+    try {
+      await api.deletePlaylist(playlistId, authContext.authToken);
+      setPlaylists((p) => p.filter((pl) => pl.id !== playlistId));
+    } catch (error) {
+      console.error("Failed to delete playlist:", error);
+    }
   };
 
-  const renamePlaylist = (playlistId, newName) => {
-    setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? { ...pl, name: newName } : pl)));
+  const renamePlaylist = async (playlistId, newName) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
+    try {
+      const updated = await api.renamePlaylist(playlistId, newName, authContext.authToken);
+      setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? updated : pl)));
+    } catch (error) {
+      console.error("Failed to rename playlist:", error);
+    }
   };
 
-  const addMovieToPlaylist = (playlistId, movie) => {
+  const addMovieToPlaylist = async (playlistId, movie) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
     const movieId = typeof movie === "object" ? movie.id : movie;
-    setPlaylists((p) =>
-      p.map((pl) =>
-        pl.id === playlistId && !pl.movieIds.includes(movieId) ? { ...pl, movieIds: [...pl.movieIds, movieId] } : pl
-      )
-    );
+    try {
+      const updated = await api.addMovieToPlaylist(playlistId, movieId, authContext.authToken);
+      setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? updated : pl)));
+    } catch (error) {
+      console.error("Failed to add movie to playlist:", error);
+    }
   };
 
-  const removeMovieFromPlaylist = (playlistId, movieId) => {
-    setPlaylists((p) =>
-      p.map((pl) => (pl.id === playlistId ? { ...pl, movieIds: pl.movieIds.filter((m) => m !== movieId) } : pl))
-    );
+  const removeMovieFromPlaylist = async (playlistId, movieId) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
+    try {
+      const updated = await api.removeMovieFromPlaylist(playlistId, movieId, authContext.authToken);
+      setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? updated : pl)));
+    } catch (error) {
+      console.error("Failed to remove movie from playlist:", error);
+    }
   };
 
-  const clearPlaylist = (playlistId) => {
-    setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? { ...pl, movieIds: [] } : pl)));
+  const clearPlaylist = async (playlistId) => {
+    if (!authContext.authToken) {
+      console.error("Not authenticated");
+      return;
+    }
+    
+    try {
+      const updated = await api.clearPlaylist(playlistId, authContext.authToken);
+      setPlaylists((p) => p.map((pl) => (pl.id === playlistId ? updated : pl)));
+    } catch (error) {
+      console.error("Failed to clear playlist:", error);
+    }
   };
 
   return (
@@ -111,6 +178,7 @@ const MoviesContextProvider = (props) => {
         addMovieToPlaylist,
         removeMovieFromPlaylist,
         clearPlaylist,
+        loading,
       }}
     >
       {props.children}

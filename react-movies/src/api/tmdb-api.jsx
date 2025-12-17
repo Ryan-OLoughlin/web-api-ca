@@ -34,7 +34,7 @@ export const getMovie = (args) => {
 
 export const getGenres = () => {
     return fetch(
-      `http://localhost:8080/api/genres`
+      `http://localhost:8080/api/movies/genres`
     ).then((response) => {
       if (!response.ok) {
         return response.json().then((error) => {

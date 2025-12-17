@@ -60,10 +60,12 @@ const PlaylistIcon = ({ movie }) => {
                   <ListItemText primary={pl.name} />
                     <Checkbox
                       edge="end"
-                      onChange={() => toggleInPlaylist(pl)}
                       checked={pl.movieIds.includes(movie.id)}
                     />
-                    <IconButtonMui edge="end" onClick={() => handleDeletePlaylist(pl.id)}>
+                    <IconButtonMui edge="end" onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePlaylist(pl.id);
+                    }}>
                       <DeleteIcon />
                     </IconButtonMui>
                 </ListItem>
